@@ -1,0 +1,106 @@
+Ejercicio Macowins
+
+Requerimientos:
+
+- Saber el precio de venta de una prenda
+- Saber los tipos de una prenda
+- Saber las ganancias de un determinado día
+
+Resolucion:
+
+/*
+	- En un principio, al modelar la clase prenda, podria pensar en que tipo de prenda funcionaria bien como Enum, descarto crear subclases de prenda de tipo	"class Saco extends Prenda{...}" ya que por el momento el tipo de prenda no determina comportamientos ni caracteristicas diferentes, por la misma razon descarto usar una interfaz para representar los tipos de prendas.
+ 
+*/
+
+class Prenda {
+
+  private bigint precioPropio;
+  TipoPrenda tipo;
+  EstadoPrenda estado;
+  
+  bigint getPrecioVenta(){
+  	return estado.calcularPrecioVenta(precioPropio);
+  }
+  
+  TipoPrenda getTipoPrenda(){
+  	return tipo;
+  }
+}
+
+Enum TipoPrenda {
+	SACO, PANTALON, CAMISA;
+}
+
+interface EstadoPrenda {
+	bigint calcularPrecioVenta(bigint precioPropio);
+}
+
+class Nueva implements EstadoPrenda {
+	bigint calcularPrecioVenta(bigint precioPropio){
+		return precioPropio;
+	}
+}
+
+class Promocion implements EstadoPrenda {
+	bigint valor;
+	
+	bigint calcularPrecioVenta(bigint precioPropio){
+		return precioPropio - valor;
+	}
+}
+
+class Liquidacion implements EstadoPrenda {
+	bigint calcularPrecioVenta(bigint precioPropio){
+		return precioPropio * 0.50;
+	}
+}
+
+/*
+	- Nuevamente aparece una disyuntiva, ¿a quien asignarle la responsabilidad de registrar las ventas y calcular las ganancias de cada dia? podria ser un repositorio de ventas
+*/
+
+class ??? {
+	List<Venta> ventas;
+	
+	bigint calcularGananciasDeDia(LocalDate dia){
+		return ventas.filter(venta -> venta.getDia().equals(dia)).sum(venta -> venta.getPrecioVenta());
+	}
+}
+
+class Venta {
+	List<Prenda> prendasVendidas;
+	LocalDate dia;
+	MedioDePago medio;
+	
+	bigDecimal getPrecioVentaNeto(){
+		return prendasVendidas.sum(prenda -> prenda.getPrecioVenta());
+	}
+	
+	bigDecimal getPrecioVentaTotal(){
+		return medio.calcularPrecioTotal(getPrecioVentaNeto());
+	}
+}
+
+/*
+	- Podria pensar en que existen la clase ventas por un lado y por otro la clase ventaConTarjeta, si bien esto funcionaria tambien podria pensarlo con una interfaz, de ambas maneras podria seguir agregando medios de pago, y ademas seria raro que una prenda que ya se pago en efectivo mute y se quiera cambiar a venta con tarjeta, por lo cual la única razon que me lleva a decirdirme por crear una interfaz es el hecho de que realmente la herencia no es necesaria en este caso.
+*/
+
+interface MedioDePago {
+	bigdecimal calcularPrecioTotal(bigdecimal precio);
+}
+
+class Efectivo implements MedioDePago {
+	bigdecimal calcularPrecioTotal(bigdecimal precio){
+		return precio;
+	}
+}
+
+class Tarjeta implements MedioDePago {
+	int cuotas;
+	float coeficiente;
+		
+	bigdecimal calcularPrecioTotal(bigdecimal precio){
+		return precio * 0.01 + cuotas * coeficiente;
+	}
+}
